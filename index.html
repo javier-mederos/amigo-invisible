@@ -1,0 +1,87 @@
+<title>Amigo Invisible Familiar</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Nunito+Sans:wght@400;600;700&display=swap">
+<style>
+/* Layout: una sola columna centrada tipo tarjeta de regalo; lista de nombres → confirmación → sobre abierto */
+:root{
+  --bg:#f3f5ef; --card:#ffffff; --fg:#1f2a24; --muted:#5d6b62;
+  --accent:#b3263a; --pine:#2f5d46; --line:#d9e0d8; --gold:#b8892b;
+  --display:"Fraunces",Georgia,serif; --body:"Nunito Sans",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121915; --card:#1b2420; --fg:#ecf0ea; --muted:#9aa89f;
+  --accent:#e0566a; --pine:#7fbf9c; --line:#2c3832; --gold:#d9ad55; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121915; --card:#1b2420; --fg:#ecf0ea; --muted:#9aa89f;
+  --accent:#e0566a; --pine:#7fbf9c; --line:#2c3832; --gold:#d9ad55; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:1rem;line-height:1.5}
+.wrap{max-width:30rem;margin:0 auto;padding-block:2rem 3rem;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:1.5rem}
+header{display:flex;flex-direction:column;gap:.35rem}
+.eyebrow{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--pine);font-weight:700}
+h1{font-family:var(--display);font-weight:700;font-size:2.1rem;line-height:1.1;margin:0;text-wrap:balance}
+h1 span{color:var(--accent)}
+.lead{color:var(--muted);margin:0}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1.25rem;display:flex;flex-direction:column;gap:1rem}
+.panel h2{font-family:var(--display);font-weight:500;font-size:1.25rem;margin:0}
+.names{display:grid;grid-template-columns:repeat(auto-fill,minmax(8.5rem,1fr));gap:.6rem}
+button{font:inherit;cursor:pointer}
+.name{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:.8rem .6rem;font-weight:600;text-align:center;transition:border-color .15s,transform .15s}
+.name:hover{border-color:var(--pine)}
+.name:focus-visible,.btn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.btns{display:flex;gap:.6rem;flex-wrap:wrap}
+.btn{border:0;border-radius:10px;padding:.75rem 1.1rem;font-weight:700}
+.btn.primary{background:var(--accent);color:#fff}
+.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.envelope{text-align:center;padding-block:1.75rem 1.25rem;border-top:4px solid var(--accent);position:relative}
+.envelope .ribbon{position:absolute;top:-4px;left:50%;width:4rem;height:4px;transform:translateX(-50%);background:var(--gold)}
+.to{color:var(--muted);margin:0}
+.who{font-family:var(--display);font-weight:700;font-size:2.6rem;color:var(--accent);margin:.25rem 0;text-wrap:balance}
+@media (prefers-reduced-motion:no-preference){.who{animation:pop .5s ease-out}}
+@keyframes pop{from{opacity:.2;transform:scale(.9)}to{opacity:1;transform:none}}
+.hint{font-size:.875rem;color:var(--muted);margin:0}
+footer{font-size:.8rem;color:var(--muted);text-align:center}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Navidad 2026 · Sorteo familiar</div>
+    <h1>¿A quién te toca <span>regalar</span>?</h1>
+    <p class="lead">Pulsa solo tu nombre. Nadie más verá tu resultado, ni siquiera quien organizó el sorteo.</p>
+  </header>
+
+  <section class="panel" id="step-pick">
+    <h2>¿Quién eres?</h2>
+    <div class="names" id="names"></div>
+  </section>
+
+  <section class="panel" id="step-confirm" hidden>
+    <h2 id="confirm-q"></h2>
+    <p class="hint">Si eliges un nombre que no es el tuyo, descubrirás el secreto de otra persona.</p>
+    <div class="btns">
+      <button class="btn primary" id="yes">Sí, ver mi amigo invisible</button>
+      <button class="btn ghost" id="no">No, volver</button>
+    </div>
+  </section>
+
+  <section class="panel envelope" id="step-reveal" hidden>
+    <div class="ribbon"></div>
+    <p class="to" id="to"></p>
+    <p class="who" id="who"></p>
+    <p class="hint">Guárdalo en secreto y cierra esta página.</p>
+    <div class="btns" style="justify-content:center"><button class="btn ghost" id="hide">Ocultar</button></div>
+  </section>
+
+  <footer>Sorteo hecho al azar respetando parejas y restricciones.</footer>
+</div>
+
+<script>
+const NAMES=["Tío Antonio", "Mamá", "Papá", "David", "Bego", "Alicia", "Terry", "Ana Mary", "Javier"], DATA={"Tío Antonio": "Fa3MT20gHA0=", "Mamá": "CQAbqsU=", "Papá": "BAQCsdg=", "David": "BgQRBg==", "Bego": "DwQKrOM=", "Alicia": "EQ0ZoMg=", "Terry": "HgQEGxwm", "Ana Mary": "Fa3MT20gHA0uAAhP", "Javier": "Cw0fCgwT"};
+const $=id=>document.getElementById(id);
+function dec(g,s){const k=new TextEncoder().encode(g.repeat(7)+'amigo-invisible-2026');const b=Uint8Array.from(atob(s),c=>c.charCodeAt(0));return new TextDecoder().decode(b.map((c,i)=>c^k[i%k.length]));}
+let current=null;
+function show(step){['step-pick','step-confirm','step-reveal'].forEach(s=>$(s).hidden=s!==step);}
+NAMES.forEach(n=>{const b=document.createElement('button');b.className='name';b.textContent=n;b.onclick=()=>{current=n;$('confirm-q').textContent='¿Eres '+n+'?';show('step-confirm');};$('names').appendChild(b);});
+$('no').onclick=()=>{current=null;show('step-pick');};
+$('yes').onclick=()=>{$('to').textContent=current+', te toca regalar a';$('who').textContent=dec(current,DATA[current]);show('step-reveal');};
+$('hide').onclick=()=>{$('who').textContent='';current=null;show('step-pick');};
+</script>
